@@ -1,5 +1,6 @@
 import cv2
 import datetime
+import time
 
 def take_picture():
     # Open a connection to the camera (0 is usually the default camera)
@@ -8,6 +9,10 @@ def take_picture():
     if not cap.isOpened():
         print("Error: Could not open camera.")
         return
+
+    # Allow the camera to warm up for 2 seconds
+    print("Opening camera. Please wait...")
+    time.sleep(2)
 
     # Capture a single frame
     ret, frame = cap.read()
