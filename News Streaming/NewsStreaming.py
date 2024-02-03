@@ -1,3 +1,4 @@
+# i got my API key here https://newsapi.org/account
 import requests
 
 NEWS_API_KEY = 'ed2180d6995445b696bf2f3868ad3e6b'
