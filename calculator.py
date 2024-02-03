@@ -1,51 +1,62 @@
-import tkinter as tk
+from kivy.app import App
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.boxlayout import BoxLayout
 
-def on_button_click(value):
-    current = entry.get()
-    entry.delete(0, tk.END)
-    entry.insert(tk.END, current + str(value))
+class CalculatorApp(App):
+    def build(self):
+        self.operators = ['/', '*', '-', '+']
+        self.last_was_operator = None
+        self.last_button = None
 
-def clear_entry():
-    entry.delete(0, tk.END)
+        # Create the main layout
+        layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
 
-def calculate_result():
-    try:
-        result = eval(entry.get())
-        entry.delete(0, tk.END)
-        entry.insert(tk.END, str(result))
-    except Exception as e:
-        entry.delete(0, tk.END)
-        entry.insert(tk.END, "Error")
+        # Entry widget for displaying the input and result
+        self.entry = TextInput(font_size=32, multiline=False, readonly=True, halign='right', input_filter='float')
+        layout.add_widget(self.entry)
 
-# Create the main window
-root = tk.Tk()
-root.title("Simple Calculator")
+        # Grid layout for buttons
+        buttons_layout = GridLayout(cols=4, spacing=10, size_hint=(1, 0.8))
 
-# Entry widget for displaying the input and result
-entry = tk.Entry(root, width=20, font=('Arial', 16))
-entry.grid(row=0, column=0, columnspan=4)
+        # Buttons for numbers and operations
+        buttons = [
+            '7', '8', '9', '/',
+            '4', '5', '6', '*',
+            '1', '2', '3', '-',
+            '0', '.', '=', '+'
+        ]
 
-# Buttons for numbers and operations
-buttons = [
-    '7', '8', '9', '/',
-    '4', '5', '6', '*',
-    '1', '2', '3', '-',
-    '0', '.', '=', '+'
-]
+        for button_text in buttons:
+            btn = Button(text=button_text, font_size=32)
+            btn.bind(on_press=self.on_button_click)
+            buttons_layout.add_widget(btn)
 
-row_val = 1
-col_val = 0
+        layout.add_widget(buttons_layout)
 
-for button in buttons:
-    tk.Button(root, text=button, width=5, height=2,
-              command=lambda value=button: on_button_click(value) if value != '=' else calculate_result()).grid(row=row_val, column=col_val)
-    col_val += 1
-    if col_val > 3:
-        col_val = 0
-        row_val += 1
+        return layout
 
-# Clear button
-tk.Button(root, text="C", width=5, height=2, command=clear_entry).grid(row=row_val, column=col_val)
+    def on_button_click(self, instance):
+        current_text = self.entry.text
+        button_text = instance.text
 
-# Run the application
-root.mainloop()
+        if button_text == '=':
+            try:
+                result = eval(current_text)
+                self.entry.text = str(result)
+            except Exception as e:
+                self.entry.text = "Error"
+        else:
+            if self.last_was_operator and button_text in self.operators:
+                # Replace the last operator if the new one is pressed
+                self.entry.text = current_text[:-1] + button_text
+            else:
+                # Append the clicked button to the input
+                self.entry.text += button_text
+
+        self.last_button = button_text
+        self.last_was_operator = button_text in self.operators
+
+if __name__ == '__main__':
+    CalculatorApp().run()
