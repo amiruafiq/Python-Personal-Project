@@ -46,7 +46,7 @@ class CalculatorApp(App):
                 result = eval(current_text)
                 self.entry.text = str(result)
             except Exception as e:
-                self.entry.text = "Error"
+                self.entry.text = "Salah tu Boh"
         else:
             if self.last_was_operator and button_text in self.operators:
                 # Replace the last operator if the new one is pressed
