@@ -1,49 +1,34 @@
-from cvzone.FaceMeshModule import FaceMeshDetector
-import cv2
+import cv2           # Importing the OpenCV library for computer vision tasks
+import cvzone       # Importing the cvzone library for additional functionalities
+import numpy as np  # Importing NumPy library for numerical operations
 
-# Initialize the webcam
-# '2' indicates the third camera connected to the computer, '0' would usually refer to the built-in webcam
-cap = cv2.VideoCapture(2)
+# Download an image containing shapes from a given URL
+imgShapes = cvzone.downloadImageFromUrl(
+    url='https://github.com/cvzone/cvzone/blob/master/Results/shapes.png?raw=true')
 
-# Initialize FaceMeshDetector object
-# staticMode: If True, the detection happens only once, else every frame
-# maxFaces: Maximum number of faces to detect
-# minDetectionCon: Minimum detection confidence threshold
-# minTrackCon: Minimum tracking confidence threshold
-detector = FaceMeshDetector(staticMode=False, maxFaces=2, minDetectionCon=0.5, minTrackCon=0.5)
+# Perform edge detection using the Canny algorithm
+imgCanny = cv2.Canny(imgShapes, 50, 150)
 
-# Start the loop to continually get frames from the webcam
-while True:
-    # Read the current frame from the webcam
-    # success: Boolean, whether the frame was successfully grabbed
-    # img: The current frame
-    success, img = cap.read()
+# Dilate the edges to strengthen the detected contours
+imgDilated = cv2.dilate(imgCanny, np.ones((5, 5), np.uint8), iterations=1)
 
-    # Find face mesh in the image
-    # img: Updated image with the face mesh if draw=True
-    # faces: Detected face information
-    img, faces = detector.findFaceMesh(img, draw=True)
+# Find contours in the image without any corner filtering
+imgContours, conFound = cvzone.findContours(
+    imgShapes, imgDilated, minArea=1000, sort=True,
+    filter=None, drawCon=True, c=(255, 0, 0), ct=(255, 0, 255),
+    retrType=cv2.RETR_EXTERNAL, approxType=cv2.CHAIN_APPROX_NONE)
 
-    # Check if any faces are detected
-    if faces:
-        # Loop through each detected face
-        for face in faces:
-            # Get specific points for the eye
-            # leftEyeUpPoint: Point above the left eye
-            # leftEyeDownPoint: Point below the left eye
-            leftEyeUpPoint = face[159]
-            leftEyeDownPoint = face[23]
+# Find contours in the image and filter them based on corner points (either 3 or 4 corners)
+imgContoursFiltered, conFoundFiltered = cvzone.findContours(
+    imgShapes, imgDilated, minArea=1000, sort=True,
+    filter=[3, 4], drawCon=True, c=(255, 0, 0), ct=(255, 0, 255),
+    retrType=cv2.RETR_EXTERNAL, approxType=cv2.CHAIN_APPROX_NONE)
 
-            # Calculate the vertical distance between the eye points
-            # leftEyeVerticalDistance: Distance between points above and below the left eye
-            # info: Additional information (like coordinates)
-            leftEyeVerticalDistance, info = detector.findDistance(leftEyeUpPoint, leftEyeDownPoint)
+# Display the image with all found contours
+cv2.imshow("imgContours", imgContours)
 
-            # Print the vertical distance for debugging or information
-            print(leftEyeVerticalDistance)
+# Display the image with filtered contours (either 3 or 4 corners)
+cv2.imshow("imgContoursFiltered", imgContoursFiltered)
 
-    # Display the image in a window named 'Image'
-    cv2.imshow("Image", img)
-
-    # Wait for 1 millisecond to check for any user input, keeping the window open
-    cv2.waitKey(1)
+# Wait until a key is pressed to close the windows
+cv2.waitKey(0)
