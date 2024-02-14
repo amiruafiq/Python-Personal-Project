@@ -1,3 +1,4 @@
+#DNN issue - uncompatible
 import cv2
 
 # Load the pre-trained Caffe model for age estimation
