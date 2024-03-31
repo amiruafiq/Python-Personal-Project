@@ -1,48 +1,20 @@
-# FAILED
 import requests
 from bs4 import BeautifulSoup
 
-def scrape_website(url):
-    # Send an HTTP request to the specified URL with allow_redirects=True
-    response = requests.get(url, allow_redirects=True)
+# URL of the website to scrape
+url = "https://www.hmetro.com.my/"
 
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
-        # Parse the HTML content of the page
-        soup = BeautifulSoup(response.content, 'html.parser')
+# Send a GET request to the URL
+response = requests.get(url)
 
-        # Extract information based on the HTML structure of the website
-        article_titles = []
-        for article in soup.find_all('div', class_='nbg-image'):
-            title = article.find('h2').text.strip()
-            article_titles.append(title)
-            # Print the title in the terminal
-            print("- " + title)
+# Parse the HTML content of the webpage
+soup = BeautifulSoup(response.text, "html.parser")
 
-        return article_titles
-    else:
-        print(f"Failed to retrieve the webpage. Status code: {response.status_code}")
-        return None
+# Find all quote blocks on the page
+quote_blocks = soup.find_all("div", class_="quote")
 
-def export_to_text(article_titles, output_filename="output.txt"):
-    try:
-        # Write article titles to a text file
-        with open(output_filename, "w", encoding="utf-8") as text_file:
-            for title in article_titles:
-                text_file.write(title + "\n")
-        print(f"Text file '{output_filename}' exported successfully.")
-    except Exception as e:
-        print(f"Failed to export to text file. Error: {e}")
-
-if __name__ == "__main__":
-    # Specify the URL of the website you want to scrape
-    target_url = "https://www.hmetro.com.my/"
-
-    # Call the scraping function and export to a text file
-    titles = scrape_website(target_url)
-
-    if titles:
-        # Export to a text file
-        export_to_text(titles)
-    else:
-        print("Failed to export to text file.")
+# Extract and print each quote and its author
+for quote_block in quote_blocks:
+    quote = quote_block.find("span", class_="text").text
+    author = quote_block.find("small", class_="author").text
+    print(f"Quote: {quote}\nAuthor: {author}\n")
